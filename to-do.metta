@@ -31,9 +31,7 @@
 (: l2Ex (-> (List $a) Expression))
 
 (= (l2Ex Nil) ())
-(= (l2Ex (Cons $x $xs))
-    (let $c (l2Ex $xs)
-        (cons-atom $x $c)))
+(= (l2Ex (Cons $x $xs))(let $c (l2Ex $xs) (cons-atom $x $c)))
 
 ! (l2Ex (Cons 0 (Cons 1 (Cons 2 Nil))))
 
