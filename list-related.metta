@@ -1,7 +1,8 @@
-;; from a list take the first N values
-(: List (-> $a Type))
-(: Nil (List $a))
-(: Cons (-> $a (List $a) (List $a)))
+; ;; from a list take the first N values
+; ;; Commented out to avoid collision of imported definitions
+; (: List (-> $a Type))
+; (: Nil (List $a))
+; (: Cons (-> $a (List $a) (List $a)))
 
 (: takeN (-> Number (List $a) (List $a)))
 (= (takeN $n Nil) Nil)
@@ -62,9 +63,10 @@
 (= (plus ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
 
 ;; map on lists 
-(: map (-> (-> $a $b) (List $a) (List $b)))
-(= (map $f Nil) Nil)
-(= (map $f (Cons $x $xs)) (Cons ($f $x) (map $f $xs)))
+;; commented out to avoid collision with  map definitions in other files
+; (: map (-> (-> $a $b) (List $a) (List $b)))
+; (= (map $f Nil) Nil)
+; (= (map $f (Cons $x $xs)) (Cons ($f $x) (map $f $xs)))
 
 
 ;; List.sum` with some transfomration function
