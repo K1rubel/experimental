@@ -62,23 +62,23 @@
                         (+ $r $c))))))
 
 ;; Tree complexity
-(: complexity (-> Atom Complexity))
+; (: complexity (-> Atom Complexity))
 
-(= (complexity $exp)
-        (if (== $exp ())
-            0
-            (case (get-metatype $exp)
+; (= (complexity $exp)
+;         (if (== $exp ())
+;             0
+;             (case (get-metatype $exp)
                 
-                    ((Expression (let* ((($f $t) (decons-atom $exp))
-                                            ($tc (complexity $t)))
+;                     ((Expression (let* ((($f $t) (decons-atom $exp))
+;                                             ($tc (complexity $t)))
                                             
-                                            (if (isMember $f (NOT AND OR))
-                                                $tc
-                                                (let $fc (complexity $f) (+ $fc $tc)))))
+;                                             (if (isMember $f (NOT AND OR))
+;                                                 $tc
+;                                                 (let $fc (complexity $f) (+ $fc $tc)))))
 
-                    ($_ (case (isBoolConst $exp) 
-                                ((True 0)
-                                (False 1))))))))                 
+;                     ($_ (case (isBoolConst $exp) 
+;                                 ((True 0)
+;                                 (False 1))))))))                 
 
 (: isBoolConst (-> Atom Bool))
 (= (isBoolConst $atom) (or (noreduce-eq $atom False) (noreduce-eq $atom True)))
@@ -108,11 +108,31 @@
 (= (mppp $func Nil) 0)
 (= (mppp $func (Cons $x $xs)) (+ (+ 0 ($func $x)) (mppp $func $xs)))
 
-! (treeSize Nil) ;; 0
-! (treeSize (mkTree (mkNode A) Nil)) ;; 1
-! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; 2
-! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) ;; 3
-! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) ;; 4
+; ; ! (treeSize Nil) ;; 0
+; ! (treeSize (mkTree (mkNode A) Nil)) ;; 1
+; ! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; 2
+; ! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) ;; 3
+; ! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) ;; 4
 
 ;; (AND A (OR B C))
 ! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))) ;; 4
+
+;; Tree complexity
+;; TODO -- typing for the function
+
+(= (complexity (mkTree (mkNode $node) Nil)) (if (or (isMember $node (AND OR NOR)) (isBoolConst $node)) 0 1))
+(= (complexity (mkTree (mkNode $node) (Cons $x $xs)))
+    (let $c (mp complexity (Cons $x $xs))
+        (if (or (isMember $node (AND OR NOT)) (isBoolConst $node))
+            (+ 0 $c)
+            (+ 1 $c))))
+
+(= (mp $func Nil) 0)
+(= (mp $func (Cons $x $xs)) (+ (+ ($func $x) 0) (mp $func $xs)))
+
+;; tests
+! (complexity (mkTree (mkNode A) Nil)) ;; 1
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; 1
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) ;; 2
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) ;; 3
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode True) Nil) Nil))))) ;; 3
