@@ -45,10 +45,8 @@
             
             (cons-atom 1 $c))))
 
-! (replaceAll (AND A B) 1)
-
 ; (: treeSize (-> (Tree $a) Number))
-(= (treeSize $tree) (sizeAtom ((preOrder $tree))))
+; (= (treeSize $tree) (sizeAtom ((preOrder $tree))))
 
 ;; size atom for nested expression
 (: sizeAtom (-> Expression Number))
@@ -62,3 +60,59 @@
                     (+ 1 $c)
                     (let $r (sizeAtom $f)
                         (+ $r $c))))))
+
+;; Tree complexity
+(: complexity (-> Atom Complexity))
+
+(= (complexity $exp)
+        (if (== $exp ())
+            0
+            (case (get-metatype $exp)
+                
+                    ((Expression (let* ((($f $t) (decons-atom $exp))
+                                            ($tc (complexity $t)))
+                                            
+                                            (if (isMember $f (NOT AND OR))
+                                                $tc
+                                                (let $fc (complexity $f) (+ $fc $tc)))))
+
+                    ($_ (case (isBoolConst $exp) 
+                                ((True 0)
+                                (False 1))))))))                 
+
+(: isBoolConst (-> Atom Bool))
+(= (isBoolConst $atom) (or (noreduce-eq $atom False) (noreduce-eq $atom True)))
+
+;; check membership of an element in a tuple
+(: isMember (-> Atom Expression Bool))
+(= (isMember $el $set) (not (== (collapse (intersection $el (superpose $set))) ())))
+
+; ! (isMember OR (AND A B))
+
+; ! (complexity A) ;; 1
+; ! (complexity True) ;; 0
+; ! (complexity (AND True)) ;; 1
+; ! (complexity (AND A)) ;; 2
+; ! (complexity (AND A (OR A B))) ;; 3
+
+
+;; Tree size -- size of a tree from the tree representation -- not from tuple representation
+;; TODO -- type definition
+;; TODO -- more tests
+
+(= (treeSize (mkTree (mkNode $node) Nil)) 1)
+
+(= (treeSize (mkTree (mkNode $node) (Cons $x $xs)))
+    (+ 1 (mppp treeSize (Cons $x $xs))))
+
+(= (mppp $func Nil) 0)
+(= (mppp $func (Cons $x $xs)) (+ (+ 0 ($func $x)) (mppp $func $xs)))
+
+! (treeSize Nil) ;; 0
+! (treeSize (mkTree (mkNode A) Nil)) ;; 1
+! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; 2
+! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) ;; 3
+! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) ;; 4
+
+;; (AND A (OR B C))
+! (treeSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))) ;; 4
