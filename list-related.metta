@@ -11,18 +11,7 @@
         Nil
         (let $t (takeN (- $n 1) $xs) (Cons $x $t))))
 
-;; finding maximum from list numbers
-(: List.max (-> (List $a) $a))
-(= (List.max Nil) Nil)
-(= (List.max (Cons $x $xs))
-    (if (== $xs Nil)
-        $x
-        (let (Cons $t $u) $xs 
-            (if (>= $x $t)
-                (List.max (Cons $x $u))
-                (List.max $xs)))))
-
-;; overloading the above function with another type definition that compares other types 
+;; defining List.max function with a comparator that compares non-numerical type values
 (: List.max (-> (-> $a $a Bool) (List $a) $a))
 (= (List.max $comparator Nil) Nil)
 (= (List.max $comparator (Cons $x $xs))
@@ -33,14 +22,23 @@
                 (List.max $comparator (Cons $x $u))
                 (List.max $comparator $xs)))))
 
+;; Overloading the above List.max with the built in >= comparison operator
+(: List.max (-> (List $a) $a))
+; (= (List.max Nil) Nil)
+(= (List.max (Cons $x $xs)) (List.max >= (Cons $x $xs)))
+
 ;; an equal to or grearter than comparator that is resopnsible for deconstructing numerical values from the type constructor and compare them 
 ;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
 (: >>= (-> $a $a Bool))
 (= (>>= ($ctor $x) ($ctor $y))(>= $x $y))
 
+;; testing List.max
+; ! (List.max (Cons 1 (Cons 2 (Cons 5 (Cons 3 Nil)))))
+; ! (List.max >>= (Cons (mkSize 1) (Cons (mkSize 10) (Cons (mkSize 2) (Cons (mkSize 3) Nil)))))
+
 ;; Sum of list elements
 ;;      1st for (List Number) -- followed by 
-(: List.sum (-> (List $a) $a))
+(: List.sum (-> (List Number) Number))
 (= (List.sum Nil) Nil)
 (= (List.sum (Cons $x $xs))
     (if (== $xs Nil)
@@ -48,7 +46,7 @@
         (let $c (List.sum $xs)
             (+ $x $c))))
 
-;;      2nd List.Sum for any (List $a) $a of (typeConstructor Number) type
+;; List.sum function -- adds elements of a list of non-numeric type
 (: List.sum (-> (-> $a $a $a) (List $a) $a))
 (= (List.sum $adder Nil) Nil)
 (= (List.sum $adder (Cons $x $xs))
@@ -57,10 +55,29 @@
         (let $c (List.sum $adder $xs)
             ($adder $x $c))))
 
+;; overloading the above function to work with list of numbers
+(: List.sum (-> (List Number) Number))
+(= (List.sum $list) (List.sum + $list))
+
+! (List.sum (Cons 1 (Cons 2 Nil)))
 ;; defining addition operator for non-numerical types
-;; plus
-(: plus (-> $a $a $a))
-(= (plus ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
+;; adder
+(: adder (-> $a $a $a))
+(= (adder ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
+
+(: goal Type)
+(: mkGoal (-> $a goal))
+
+! (adder (mkGoal 4) (mkGoal 3))
+
+! (+ 3 5)
+! (get-type +)
+; ! (+ (mkGoal 4) (mkGoal 3))
+
+; ! (List.sum Nil)
+; ! (List.sum (Cons 1 Nil))
+; ! (List.sum (Cons 1 (Cons 3 Nil)))
+; ! (List.sum adder (Cons (mkSize 1) (Cons (mkSize 3) Nil)))
 
 ;; map on lists 
 ;; commented out to avoid collision with  map definitions in other files
