@@ -143,3 +143,9 @@
             ($c (normalizeProbs (mkScoreT $invTemp) (mkScoreT $best) $xs))
         )
         (Cons $new $c)))
+
+;; Insert by id
+;; Using id strating at 0 
+(: List.append (-> $a (List $a) (List $a)))
+(= (List.append $a Nil) (Cons $a Nil))
+(= (List.append $a (Cons $x $xs)) (if (== $xs Nil) (Cons $x (Cons $a $xs)) (Cons $x (List.append $a $xs))))
