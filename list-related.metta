@@ -149,3 +149,8 @@
 (: List.append (-> $a (List $a) (List $a)))
 (= (List.append $a Nil) (Cons $a Nil))
 (= (List.append $a (Cons $x $xs)) (if (== $xs Nil) (Cons $x (Cons $a $xs)) (Cons $x (List.append $a $xs))))
+
+;; Get an element by index from a list
+(: List.getByIdx (-> (List $a) Number $a))
+(= (List.getByIdx Nil $idx) (Error (Index out of range)))
+(= (List.getByIdx (Cons $head $tail) $idx) (if (== $idx 0 ) $head (List.getByIdx $tail (- $idx 1))) )
