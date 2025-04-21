@@ -79,18 +79,25 @@
         (Cons $x (List.removeByIdx $xs (- $n 1)))))
 
 ;; get children by index
-(: getChildrenById (-> (Tree $a) NodeId (List (Tree $a))))
-(= (getChildrenById $tree (mkNodeId $id))
-   (let $targetNode (getNodeById $tree (mkNodeId $id))
-     (case $targetNode
-       (
-         ((mkTree (mkNode $r) $childrenTgt) $childrenTgt)
-         ((mkNullVex $childrenTgt) $childrenTgt)
-         ($else (Error (Node not found or invalid)))))))
+; (: getChildrenById (-> (Tree $a) NodeId (List (Tree $a))))
+; (= (getChildrenById $tree (mkNodeId $id))
+;    (let $targetNode (getNodeById $tree (mkNodeId $id))
+;      (case $targetNode
+;        (
+;          ((mkTree (mkNode $r) $childrenTgt) $childrenTgt)
+;          ((mkNullVex $childrenTgt) $childrenTgt)
+;          ($else (Error (Node not found or invalid)))))))
 
-! (getNodeById (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))) (mkNodeId (2 1)))
+(: getChildrenById (-> (Tree $a) Number (List (Tree $a))))
+(= (getChildrenByIdx $tree $idx)
+        (case $tree
+            (((mkTree (mkNode $r) $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ($else (Error (Node not found or invalid))))))
 
-! (getChildrenById (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) (mkNodeId (0)))         
+; ! (getNodeById (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))) (mkNodeId (2 1)))
+
+; ! (getChildrenById (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) (mkNodeId (0)))         
 
 (= (cleanTree (mkTree (mkNode $r) $children))
     (let $clean (List.clean $children)
@@ -107,21 +114,46 @@
         (List.clean $xs)
         (Cons $x (List.clean $xs))))
 
-! (List.clean (Cons (mkTree (mkNode A) Nil) (Cons null (Cons (mkTree (mkNode B) Nil) (Cons null Nil)))))
+; ! (List.clean (Cons (mkTree (mkNode A) Nil) (Cons null (Cons (mkTree (mkNode B) Nil) (Cons null Nil)))))
 
 (: map (-> (-> $a $a) (List $a) (List $a)))
 (= (map $func Nil) Nil)
 (= (map $func (Cons $x $xs))
     (Cons ($func $x) (map $func $xs))
 )
-! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil))))
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil))))
 
-! (cleanTree (mkTree (mkNode A) Nil)) ;; (mkTree (mkNode A) Nil)
-! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))
-! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons null Nil))))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
+; ! (cleanTree (mkTree (mkNode A) Nil)) ;; (mkTree (mkNode A) Nil)
+; ! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))
+; ! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons null Nil))))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
 
-! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))
+; ! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))
 
-! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons null Nil)) Nil)))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))
+; ! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons null Nil)) Nil)))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)))
 
 ; ! (cleanTree (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons null Nil))))) ;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
+; ! (getNodeById (mkTree (mkNode AND) (Cons (mkTree (mkNode A)))))
+
+; ! (getNodeById (mkTree (mkNode OR)
+;   (Cons
+;     (mkNullVex
+;       (Cons
+;         (mkTree (mkNode AND)
+;           (Cons (mkTree (mkNode B) Nil)
+;             (Cons (mkTree (mkNode A) Nil) Nil)))
+;         Nil))
+;     (Cons (mkTree (mkNode D) Nil) Nil))) (mkNodeId (0 1)))
+
+! (getNodeById
+  (mkTree (mkNode AND)
+    (Cons
+      (mkTree (mkNode X) Nil)
+      (Cons
+        (mkNullVex
+          (Cons
+            (mkTree (mkNode OR)
+              (Cons (mkTree (mkNode Y) Nil)
+                    (Cons (mkTree (mkNode Z) Nil) Nil)))
+            Nil))
+        Nil)))
+  (mkNodeId (0 2)))

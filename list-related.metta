@@ -154,3 +154,15 @@
 (: List.getByIdx (-> (List $a) Number $a))
 (= (List.getByIdx Nil $idx) (Error (Index out of range)))
 (= (List.getByIdx (Cons $head $tail) $idx) (if (== $idx 0 ) $head (List.getByIdx $tail (- $idx 1))) )
+
+;; replace by index
+(: List.replaceByIdx (-> (List $a) Number $a (List $a)))
+(= (List.replaceByIdx Nil $idx $new) (Error $idx "Reached End of List"))
+(= (List.replaceByIdx (Cons $x $xs) $idx $new)
+    (if (== $idx 0)
+        (Cons $new $xs)
+        (Cons $x (List.replaceByIdx $xs (- $idx 1) $new))))
+
+; ! (List.replaceByIdx Nil 2 3)  
+; ! (List.replaceByIdx (Cons 0 Nil) 0 1)      
+; ! (List.replaceByIdx (Cons 0 (Cons 1 Nil)) 1 2)      

@@ -39,47 +39,34 @@
 
 )
 
-! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil) )))
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil) )))
 
 ; ! (get-type random-int)
 ; ; ! (random-float &rng 0 1)
 
-;; append child would be replace 
-
-
-; (: appendTo (-> (Tree $a) lsk (Tree $a)))
-
-(= (appendTo $tree $lsk)
-    ;; get node id and specification of the node from the lsk using getter functions
-    ;; then apply modification based on the specification
-    ;; if absent, remove the node from list of children of the 
-    ;; if negated add a NOT parent node above the node
-    ;; if present just leave it as is
-    ;; in the case of absent Since I dont have access to the parent list what I can do is just replace the target node with a null value
-    ;; then just clean the tree of such null values afterwards
-    ;; null also must be typed as (Tree $a)
-
-    (let* (($nodeId (getNodeById $lsk))
-           ($current (getDisSpec $lsk))
-           ($targetNode (getNodeById $tree $nodeId)))
-            
-            (case $current
-                ((0     (let $newT (replaceNodeById $tree $nodeId null)
-                            (cleanTree $newT)))
-                (1      $tree)
-                (2      (let $negatedNode (insertAbove $targetNode (mkNode NOT))
-                            (replaceNodeById $tree $nodeId $negatedNode)))))))
-
-
 ;; get the node id from lsk
 (: mkLSK (-> DiscreteKnob (Tree $a) LogicalSubtreeKnob))
 
+(mkLSK
+    (mkDiscKnob
+      (mkKnob
+        (mkTree (mkNode OR)
+          (Cons (mkTree (mkNode X) Nil)
+            (Cons (mkTree (mkNode Y) Nil)
+              (Cons (mkTree (mkNode Z) Nil)
+                Nil))))
+        (mkNodeId (0 2)))
+      (mkMultip 3)
+      (mkDiscSpec 1)
+      (mkDiscSpec 1)
+      Nil)
+    (mkTree (mkNode Y) Nil))
+
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
-    (let ($ctor $id) $nodeId $id)
-)
+   $nodeId)
 ;; get current and default disc spec
-(= (getDisSpec (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
-    ($default $current))
+(= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+    (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
 (= (getSubtree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
     $subtree)
@@ -112,23 +99,137 @@
 (: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a)))
 (= (appendTo $tree $lsk)
     ;; get current and default specifications, tree to be added to candidate from the
-    (let* (($nodeId (getNodeByID))
-            (($default $current) (getDisSpec $lsk))
+    (let* (($nodeId (getNodeId))
+            (($default $current) (getDiscSpec $lsk))
             ($subtree (getSubtree $lsk)))
             (if (isEmpty $tree)
                 $subtree
                 (let $treeToAppend 
                    (case ($current $default)
                         (((2 1) (insertAbove $subtree (mkNode NOT))) ;; negating the subtree 
-                         ((2 0) (let $child (getChildrenById $subtree (mkNodeId (0))) (insertAbove $child (mkNode NOT)))) ;; getting the first child of the subtree
+                         ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT)))) ;; getting the first child of the subtree
                          (($n 1) $subtree)
-                         (($n 0) (getChildrenById $subtree (mkNodeId (0))))))
+                         (($n 0) (getChildrenByIdx $subtree 0))))
 
                     (replaceNodeById $tree $nodeId $treeToAppend)))))
 
 ;; getNodeById (AND A (OR B C))
-! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil))))
-! (getNodeById (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil))) (mkNodeId (0 2)))
-; ! (getChildrenById (mkTree (mkNode NOT) Nil) (mkNodeId (0)))
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil))))
+; ! (getNodeById (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) Nil))) (mkNodeId (0 2)))
+; ; ! (getChildrenByIdx (mkTree (mkNode NOT) Nil) (mkNodeId (0)))
 
-! (getChildrenById (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkNodeId (0)))
+; ! (getChildrenByIdx (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) 0)
+; ! (get-type (mkNullVex Nil))
+
+; ! (get-type (mkTree (mkNode AND) 
+;         (Cons (mkTree (mkNode A) Nil) 
+;             (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+
+; ! (get-type (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))            
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))
+
+; ! (get-type (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)
+;     (Cons (mkTree (mkNode NullVertex) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+
+; ! (get-type (mkTree (mkNode OR)
+;   (Cons
+;     (mkNullVex
+;       (Cons
+;         (mkTree (mkNode AND)
+;           (Cons (mkTree (mkNode B) Nil)
+;             (Cons (mkTree (mkNode A) Nil) Nil)))
+;         Nil))
+;     (Cons (mkTree (mkNode D) Nil) Nil))))
+
+; ! (getNodeById (mkTree (mkNode OR)
+;   (Cons
+;     (mkNullVex
+;       (Cons
+;         (mkTree (mkNode AND)
+;           (Cons (mkTree (mkNode B) Nil)
+;             (Cons (mkTree (mkNode A) Nil) Nil)))
+;         Nil))
+;     (Cons (mkTree (mkNode D) Nil) Nil))) (mkNodeId (0 2)))
+
+; ! (appendTo (mkTree (mkNode OR)
+;   (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode A) Nil) Nil))) Nil))
+;     (Cons (mkTree (mkNode D) Nil) Nil))) 
+;             (mkLSK
+;                 (mkDiscKnob
+;                     (mkKnob
+;                     (mkTree (mkNode OR)
+;                         (Cons
+;                         (mkNullVex
+;                             (Cons
+;                             (mkTree (mkNode AND)
+;                                 (Cons (mkTree (mkNode B) Nil)
+;                                     (Cons (mkTree (mkNode A) Nil) Nil)))
+;                             Nil))
+;                         (Cons (mkTree (mkNode D) Nil) Nil)))
+;                     (mkNodeId (0 1)))
+;                     (mkMultip 3)
+;                     (mkDiscSpec 1)
+;                     (mkDiscSpec 2)
+;                     Nil)
+;                 (mkTree (mkNode AND)
+;                     (Cons (mkTree (mkNode B) Nil)
+;                         (Cons (mkTree (mkNode A) Nil) Nil)))))
+
+; ! (getSubtree (mkLSK
+;   (mkDiscKnob
+;     (mkKnob
+;       (mkTree (mkNode OR)
+;         (Cons
+;           (mkNullVex
+;             (Cons
+;               (mkTree (mkNode AND)
+;                 (Cons (mkTree (mkNode B) Nil)
+;                       (Cons (mkTree (mkNode A) Nil) Nil)))
+;               Nil))
+;           (Cons (mkTree (mkNode D) Nil) Nil)))
+;       (mkNodeId (0 1)))
+;     (mkMultip 3)
+;     (mkDiscSpec 1)
+;     (mkDiscSpec 2)
+;     Nil)
+;   (mkTree (mkNode AND)
+;     (Cons (mkTree (mkNode B) Nil)
+;           (Cons (mkTree (mkNode A) Nil) Nil)))))
+
+; ! (replaceNodeById (mkTree (mkNode OR)
+;                         (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode A) Nil) Nil))) Nil))
+;                             (Cons (mkTree (mkNode D) Nil) Nil)))  (mkNodeId (0 1)) 
+;                             (mkTree (mkNode AND)
+;                                 (Cons (mkTree (mkNode B) Nil)
+;                                     (Cons (mkTree (mkNode A) Nil) Nil))))
+
+; ! (getNodeById (mkTree (mkNode OR)
+;                         (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode A) Nil) Nil))) Nil))
+;                             (Cons (mkTree (mkNode D) Nil) Nil)))  (mkNodeId (0 1)))
+
+; ! (getNodeById (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkNodeId (0 1 0)) ) 
+; ! (replaceNodeById (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkNodeId (0 1)) (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)))                      
+
+(: replaceNodeById (-> (Tree $a) NodeId (Tree $a) (Tree $a)))
+(= (replaceNodeById (mkTree (mkNode $r) $children) (mkNodeId $id) $subtree)
+    (let* ((($f $t) (decons-atom $id))
+        )
+            
+            (if (== $t ())
+                (if (== $f 0)
+                    $subtree
+                    (mkTree (mkNode $r) (List.replaceByIdx $children (- $f 1) $subtree))
+                )
+                (if (== $f 0)
+                    (let* ((($f2 $t2) (decons-atom $t))
+                            ($c )) (mkTree (mkNode $r) (List.replaceByIdx $children (- $f2 1) $subtree)))
+                    ()
+                )
+            )))
+
+;; checking working import for List.replaceByIdx
+; ! (List.replaceByIdx (Cons 0 Nil) 0 1)      
+; ! (List.replaceByIdx (Cons 0 (Cons 1 Nil)) 1 2) 
+
+! (replaceNodeById (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkNodeId (1)) (mkTree (mkNode C) Nil))
