@@ -1,0 +1,5 @@
+! (import! &self motto)
+; ! ((anthropic-agent) (user "What is a black hole?"))
+! (llm (user "What is a black hole?"))
+; !((chat-gpt-agent) (user "Hello"))
+!((open-router-agent) (user "Who was the 22nd President of France?"))

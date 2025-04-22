@@ -71,12 +71,7 @@
 (= (getSubtree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
     $subtree)
 
-;; Question XXX : how to represent an empty tree
-;; I have used Nill (not Nil) to represent the an empty tree
-(: Nill (Tree $a))
-
-;; or an alternative representation would be to consider a null vertex with zero children to be empty tree
-;; here is a reference to how nullvertex is represented 
+;; represeantation of an empty tree with nullvertex 
 
 (: NullVertex (Tree $a))
 (: mkNullVex (-> (List (Tree $a)) (Tree $a)))
