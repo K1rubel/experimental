@@ -67,7 +67,7 @@
                               (replaceNodeById $childToUpdate (mkNodeId $tailId) $newSubtree)))
            ($newChildren (List.replaceAt $children (- $headId 1) $updatedChild))
          )
-         (mkTree (mkNode $r) $newChildren))))
+         (mkTree (mkNode $r) $newChildren))))        
 
 ;; remove by index from a list of ..
 
@@ -105,15 +105,6 @@
     )
 ) 
 
-(: null (Tree $a))
-;; clean list
-(: List.clean (-> (List $a) (List $a)))
-(= (List.clean Nil) Nil)
-(= (List.clean (Cons $x $xs))
-    (if (== $x null)
-        (List.clean $xs)
-        (Cons $x (List.clean $xs))))
-
 ; ! (List.clean (Cons (mkTree (mkNode A) Nil) (Cons null (Cons (mkTree (mkNode B) Nil) (Cons null Nil)))))
 
 (: map (-> (-> $a $a) (List $a) (List $a)))
@@ -144,16 +135,20 @@
 ;         Nil))
 ;     (Cons (mkTree (mkNode D) Nil) Nil))) (mkNodeId (0 1)))
 
-! (getNodeById
-  (mkTree (mkNode AND)
-    (Cons
-      (mkTree (mkNode X) Nil)
-      (Cons
-        (mkNullVex
-          (Cons
-            (mkTree (mkNode OR)
-              (Cons (mkTree (mkNode Y) Nil)
-                    (Cons (mkTree (mkNode Z) Nil) Nil)))
-            Nil))
-        Nil)))
-  (mkNodeId (0 2)))
+; ! (getNodeById
+;   (mkTree (mkNode AND)
+;     (Cons
+;       (mkTree (mkNode X) Nil) 
+;         (Cons (mkNullVex (Cons (mkTree (mkNode OR) 
+;           (Cons (mkTree (mkNode Y) Nil) 
+;             (Cons (mkTree (mkNode Z) Nil) Nil))) Nil)) Nil))) 
+;               (mkNodeId (2)))
+
+; ! (let $tree (replaceNodeById (mkTree (mkNode AND)
+;                       (Cons
+;                         (mkTree (mkNode A) Nil) 
+;                           (Cons (mkNullVex (Cons (mkTree (mkNode OR) 
+;                             (Cons (mkTree (mkNode Y) Nil) 
+;                               (Cons (mkTree (mkNode Z) Nil) Nil))) Nil)) Nil)))  (mkNodeId (2)) 
+                              
+;                               (mkTree (mkNode H) Nil)) (get-type $tree))
