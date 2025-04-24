@@ -40,3 +40,8 @@
 ! (boltzNomralizer (mkSize 25) (mkSize 0.7) (mkSize 0.3))
 
 ! (normalizeProbs (mkScoreT 25) (mkScoreT 0.7) (Cons (mkScoreT 0.4) (Cons (mkScoreT 0.1) (Cons (mkScoreT 0.9) Nil))))
+
+;; Test case for List.prepend
+!(assertEqual (List.prepend 0 Nil) (Cons 0 Nil))
+!(assertEqual (List.prepend 0 (Cons 1 Nil)) (Cons 0 (Cons 1 Nil)))
+!(assertEqual (List.prepend 0 (Cons 1 (Cons 2 Nil))) (Cons 0 (Cons 1 (Cons 2 Nil))))
