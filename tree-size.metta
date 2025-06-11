@@ -135,4 +135,5 @@
 ! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil))) ;; 1
 ! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) ;; 2
 ! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) ;; 3
-! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode True) Nil) Nil))))) ;; 3
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode True) Nil) Nil))))) ;; 2
+! (complexity (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode True) Nil) Nil))))) ;; 2
