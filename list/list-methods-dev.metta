@@ -198,16 +198,34 @@
                             (return (Error $list UnknowError)))))
             (return (Error $list UnknowError))))))) 
 ! (List.max > Nil)               
-! (List.max > (Cons 1 (Cons 2 (Cons 3 Nil))))               
+! (List.max > (Cons 1 (Cons 5 (Cons 3 Nil)))) 
+
+;; a helper function to check is a list is empty
+(: is-empty (-> (List $a) Bool))
+(= (is-empty $list)
+    (function (eval (if-equal $list Nil (return True) (return False)))))
+! (is-empty (Cons 1 Nil))
 ;; Overloading the above List.max with the built in >= comparison operator for operation on List of numbers
 (: List.max (-> (List $a) $a))
 (= (List.max (Cons $x $xs)) (List.max >= (Cons $x $xs)))
 
 ;; Checks if an element is member of a list
 (: List.contains (-> $a (List $a) Bool))
-(= (List.contains $a Nil) False)
-(= (List.contains $a (Cons $head $tail)) (if (== $a $head) True (List.contains $a $tail)))
+; (= (List.contains $a Nil) False)
+; (= (List.contains $a (Cons $head $tail)) (if (== $a $head) True (List.contains $a $tail)))
 
+;; alternative implementation of Checks if an element is member of a list
+(= (List.contains $a $list)
+    (if (is-empty $list)
+        False
+        (unify $list (Cons $h $t)
+            (eval (if-equal $a $h
+                True
+                (List.contains $a $t)))
+        (Error $list UnknowError))))
+
+;; Testing List.contains     
+! (List.contains 4 (Cons 1 (Cons 4 Nil)))
 ; Replaces an element at a specific index with another element
 (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt Nil $n $elem) Nil)
