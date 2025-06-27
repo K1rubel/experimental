@@ -305,23 +305,41 @@
 
 ;; alternative implementation of replaceByIndex    
 (: replaceByIndex (-> Expression Number Atom Expression))
-(= (replaceByIndex $expr $index $val)
-    (function 
-        (eval (if-equal $expr ()
-                (return ())
-                (chain (decons-atom $expr) $list
-                    (unify $list ($head $tail)
-                        (eval (if-equal $index 0
-                            (return (cons-atom $val $tail))
-                            (chain (replaceByIndex $tail (- $index 1) $val) $c
-                                (return (cons- atom $head $c)))))
-                    (return (Error UnknownError)))))))) ;; may need to be fixed
+; (= (replaceByIndex $expr $index $val)
+;     (function 
+;         (eval (if-equal $expr ()
+;                 (return ())
+;                 (chain (decons-atom $expr) $list
+;                     (unify $list ($head $tail)
+;                         (eval (if-equal $index 0
+;                             (return (cons-atom $val $tail))
+;                             (chain (replaceByIndex $tail (- $index 1) $val) $c
+;                                 (chain (cons-atom $head $c) $replaced (return $replaced)))))
+;                     (return (Error $index IndexOutOfRange)))))))) ;; may need to be fixed
 
+; (= (replaceByIndex $expr $index $val)
+;     (if-decons-expr $expr $h $t
+;         (eval (if-equal $index 0
+;                 (cons-atom $val $t)
+;                 (chain (replaceByIndex $t (- $index 1) $val) $tail-replaced
+;                     (cons-atom $h $tail-replaced))))
+;                 ()))
+(= (replaceByIndex $expr $index $val)
+    (eval (if-equal $expr ()
+            ()
+            (chain (decons-atom $expr) $list
+                (unify $list ($head $tail)
+                    (eval (if-equal $index 0
+                            (cons-atom $val $tail)
+                            (chain (replaceByIndex $tail (- $index 1) $val) $c
+                            (cons-atom $head $c))))
+                        (Error $index IndexOutOfRange))))))                
 ;; Test                    
 ! (replaceByIndex (0 1 2 3 4) 0 10) ;; (10 1 2 3 4)
-! (replaceByIndex (0 1 2 3 4) 1 10) ;; 
-! (replaceByIndex (0 1 2 3 4) 2 10) ;; 
-! (replaceByIndex () 4 3)
+! (replaceByIndex (0 1 2 3 4) 1 10) ;; (cons- atom 0 (10 2 3 4))
+; ! (replaceByIndex (0 1 2 3 4) 2 10) ;; (cons- atom 0 (cons- atom 1 (10 3 4)))
+; ! (replaceByIndex () 4 3)
+; ! (if-decons-expr () $h $t (println! $h) Emmm)
 
 ;; Select atom by index and returns
 (= (selectByIndex $expr $index)
