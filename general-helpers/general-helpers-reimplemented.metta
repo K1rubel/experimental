@@ -276,24 +276,52 @@
             (+ 1 (len $tail))
         )))
 
+;; alternative definition of len
+; (: len (-> Expression Number))
+; (= (len $expr)
+;     (if-decons-expr $expr $h $t
+;         (+ 1 (len $t))
+;         0)) 
+;; Testing len   
+; ! (len (1 2 3 4))    
 ;; A function to replace an atom at a specific index position with $val -- 0 indexed counting is implied
-(: replaceByIndex (-> Expression Number $t Expression))
-(= (replaceByIndex $expr $index $new)
-    (if (== $expr ())
-        $expr
-        (let*
-            (
-                ($first (car-atom $expr))
-                ($tail (cdr-atom $expr))
-            )
-            (if (== $index 0)
-                (if (== $tail ())
-                    ($new)
-                    (cons-atom $new $tail)
-                )
-                (let $c (replaceByIndex $tail (- $index 1) $new)
-                    (cons-atom $first $c)
-                )))))
+; (: replaceByIndex (-> Expression Number $t Expression))
+; (= (replaceByIndex $expr $index $new)
+;     (if (== $expr ())
+;         $expr
+;         (let*
+;             (
+;                 ($first (car-atom $expr))
+;                 ($tail (cdr-atom $expr))
+;             )
+;             (if (== $index 0)
+;                 (if (== $tail ())
+;                     ($new)
+;                     (cons-atom $new $tail)
+;                 )
+;                 (let $c (replaceByIndex $tail (- $index 1) $new)
+;                     (cons-atom $first $c)
+;                 )))))
+
+;; alternative implementation of replaceByIndex    
+(: replaceByIndex (-> Expression Number Atom Expression))
+(= (replaceByIndex $expr $index $val)
+    (function 
+        (eval (if-equal $expr ()
+                (return ())
+                (chain (decons-atom $expr) $list
+                    (unify $list ($head $tail)
+                        (eval (if-equal $index 0
+                            (return (cons-atom $val $tail))
+                            (chain (replaceByIndex $tail (- $index 1) $val) $c
+                                (return (cons- atom $head $c)))))
+                    (return (Error UnknownError)))))))) ;; may need to be fixed
+
+;; Test                    
+! (replaceByIndex (0 1 2 3 4) 0 10) ;; (10 1 2 3 4)
+! (replaceByIndex (0 1 2 3 4) 1 10) ;; 
+! (replaceByIndex (0 1 2 3 4) 2 10) ;; 
+! (replaceByIndex () 4 3)
 
 ;; Select atom by index and returns
 (= (selectByIndex $expr $index)
