@@ -335,22 +335,36 @@
                             (cons-atom $head $c))))
                         (Error $index IndexOutOfRange))))))                
 ;; Test                    
-! (replaceByIndex (0 1 2 3 4) 0 10) ;; (10 1 2 3 4)
-! (replaceByIndex (0 1 2 3 4) 1 10) ;; (cons- atom 0 (10 2 3 4))
-; ! (replaceByIndex (0 1 2 3 4) 2 10) ;; (cons- atom 0 (cons- atom 1 (10 3 4)))
+; ! (replaceByIndex (0 1 2 3 4) 0 10) ;; (10 1 2 3 4)
+; ! (replaceByIndex (0 1 2 3 4) 1 10) ;; (cons- atom 0 (10 2 3 4))
+; ; ! (replaceByIndex (0 1 2 3 4) 2 10) ;; (cons- atom 0 (cons- atom 1 (10 3 4)))
 ; ! (replaceByIndex () 4 3)
 ; ! (if-decons-expr () $h $t (println! $h) Emmm)
 
 ;; Select atom by index and returns
-(= (selectByIndex $expr $index)
-    (if (== $expr ())
-        (Error (Index out of range) ())
-        (if (== $index 0)
-            (car-atom $expr)
-            (let $tail (cdr-atom $expr)
-                (selectByIndex $tail (- $index 1))
-            ))))
+; (= (selectByIndex $expr $index)
+;     (if (== $expr ())
+;         (Error (Index out of range) ())
+;         (if (== $index 0)
+;             (car-atom $expr)
+;             (let $tail (cdr-atom $expr)
+;                 (selectByIndex $tail (- $index 1))
+;             ))))
 
+;; reimplementation of selectByIndex        
+(= (selectByIndex $expr $index)
+    (function 
+        (eval (if-equal $expr ()
+                (return (Error $index IndexOutOfRange))
+                (chain (decons-atom $expr) $list
+                    (unify $list ($head $tail)
+                        (eval (if-equal $index 0
+                            (return $head)
+                            (chain (selectByIndex $tail (- $index 1)) $res
+                                (return $res))))
+                    (return (Error $expr UnknownError))))))))
+; ;; tests
+! (selectByIndex (1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3) 13)                    
 ;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
 (= (compareElements $first $second)
