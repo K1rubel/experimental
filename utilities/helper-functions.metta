@@ -42,3 +42,21 @@
     (chain (subtraction-atom $a $b) $a-diff 
         (chain (subtraction-atom $b $a) $b-diff (and (== (size-atom $a) (size-atom $b)) (== $a-diff $b-diff)))))
 
+;; sorting tuple of pairs in the form of (item numVal) 
+(= (sortPairs $op $pairTuple $count $acc)
+    (if (or (<= $count 0) (== $pairTuple ()))
+        (union-atom $acc $pairTuple)
+        ;; find max pair from the tuple of pairs    
+        ;; use of union assumes the pairs are non repeating -- same score is possible but always different label
+        (chain (foldl-atom $pairTuple ((A B) -inf) $ac $pair ($op $ac $pair)) $max-pair
+        (chain (union-atom $acc ($max-pair)) $new-acc
+        (chain (collapse (chain (superpose $pairTuple) $el (if (== $el $max-pair) (Empty) $el))) $rest
+        (sortPairs $op $rest (- $count 1) $new-acc))))))  ;; recursive call
+
+;; binding inf value in mettalog for pair comparison
+! (bind! -inf (py-atom ("float('-inf')")))
+(= (pairMax ($item1 $val1) ($item2 $val2)) (if (=> $val1 $val2) ($item1 $val1) ($item2 $val2)))
+
+! (pairMax (A 2) (B 3))
+;; Testing the above function
+! (sortPairs pairMax ((A 2) (B 3) (C 2.3) (D 4) (D 7)) 3 ())
