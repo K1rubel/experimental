@@ -60,3 +60,11 @@
 ! (pairMax (A 2) (B 3))
 ;; Testing the above function
 ! (sortPairs pairMax ((A 2) (B 3) (C 2.3) (D 4) (D 7)) 3 ())
+
+;; foldl function
+
+(= (foldl $expr $f $seed)
+    (if-decons-expr $expr $h $t
+        (chain ($f $seed $h) $new-seed 
+            (foldl $t $f $new-seed))
+        $seed))  
