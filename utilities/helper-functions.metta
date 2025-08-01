@@ -36,4 +36,9 @@
             (subtractionAtom $newexpr $tail))
         $expr))
 
+;; check for equality of expressions -- to make up for ordering issues     
+;; this means (A B) and (A B) are equal -- doesn't work for nested tuples
+(= (isEqual $a $b)
+    (chain (subtraction-atom $a $b) $a-diff 
+        (chain (subtraction-atom $b $a) $b-diff (and (== (size-atom $a) (size-atom $b)) (== $a-diff $b-diff)))))
 
