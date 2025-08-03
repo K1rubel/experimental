@@ -55,7 +55,7 @@
                         (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed (stochasticMaxDependency $th $numFeatures $topsCount (mkITable $table $labels) $scorer $topNSeed)))
         (chain (first (car-atom $acc)) $sample-tuple
             (if (== (size-atom $sample-tuple) $numFeatures)
-                $acc
+                (collapse (chain (superpose $acc) $pair (first $pair)))                                 ;; cleand acc and return the feature indices only
                 (chain (second (car-atom $acc)) $prev-highest-score
                 (trace! $res (chain 
                     ; (collapse 
@@ -80,7 +80,7 @@
                     (chain (second (car-atom $topN)) $topScore  ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
                     ;; terminate the loop if there is no significant improvement
                     (if (< (- $topScore $prev-highest-score) $th)
-                        $acc
+                        (collapse (chain (superpose $acc) $pair (first $pair)))
                         (stochasticMaxDependency $th $numFeatures $topsCount (mkITable $table $labels) $scorer $topN))
                         ; (foldl-atom $shuffled-pairs (() -inf) $seed $pair (pairMax $seed $pair) )                                    ;; using custom foldl functiton to compute maximum from the above result
                         ; (sortPairs pairMax $shuffled-pairs $topsCount ()) 
@@ -178,26 +178,20 @@
     (chain (List.length $if) $rowNum
     (chain (List.uniqueValuesCount $if ()) $ic ;; input feature unique values count pairs
     (chain (List.uniqueValuesCount $of ()) $oc 
-    (chain (marginalProbs $rowNum $ic) $ip      ;; input feature marginal prob
-    (chain (marginalProbs $rowNum $of) $op      ;; target feature marginal probs
     (chain (marginalProbs $rowNum $io-c) $io-p  ;; input output mutual probs
     (chain (collapse (chain (superpose $io-p) $io-prob-pair ;; ((inout output)  prob) piar -- single -- superposed
         (unify $io-prob-pair ($pair $prob)
-                (* $prob (lg 2 (/ $prob (* (/ (matchCount $ic (getInput $pair)) $rowNum) (/ (matchCount $oc (getOutput $pair)) $rowNum)))))))) ;; functions named "first" and "second" from `general helpers` could be used 
+                (* $prob (lg 2 (/ $prob (* (/ (matchCount $ic (first $pair)) $rowNum) (/ (matchCount $oc (second $pair)) $rowNum)))))))) ;; functions named "first" and "second" from `general helpers` could be used 
         $probTuple 
-        (chain (foldl-atom $probTuple 0 $acc $x (+ $acc $x)) $final-result (round $final-result 3))))))))))))
+        (chain (foldl-atom $probTuple 0 $acc $x (+ $acc $x)) $final-result (round $final-result 3))))))))))
 
 ;; return marginal probabilities as list (Cons ..) ... or is it better if it was like (p1 p2 ...)??????    
 (= (marginalProbs $len $countTuple) ;; depending on how the above goes most of the code for calculating frequencies could be included in this function
     (collapse (chain (superpose $countTuple) $pair (unify $pair ($val $count) ($val (/ $count $len)) ())))) 
 
-(= (getInput ($input $output)) $input)    
-(= (getOutput ($input $output)) $output) 
-
 (= (matchCount $tuples $cue)
     (chain (superpose $tuples) $pair 
         (unify $pair ($cue $prob) $prob (Empty))))
-
 
 (: round (-> Number Number Number))
 (= (round $x $precision)  
@@ -365,5 +359,5 @@
 
 ; ! (inputPairMiCalculator dataRows (Cons True (Cons True (Cons False (Cons False Nil)))) (0 1 2 3) (((0) 1) ((1) 0) ((2) 0) ((3) 0)))
 
-! (stochasticMaxDependency 0 3 3 ttable mi ())
-
+; ! (stochasticMaxDependency 0 3 3 ttable mi ())
+! (stochasticMaxDependency 0 1 3 ttable mi ())
