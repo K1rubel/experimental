@@ -67,4 +67,21 @@
     (if-decons-expr $expr $h $t
         (chain ($f $seed $h) $new-seed 
             (foldl $t $f $new-seed))
-        $seed))  
+        $seed))
+
+;; implementation of natural log based on series definition for ln(x) = 2 ⨊ 1⁄(2n+1)*((x-1)/ (x+1))˄ (2n+1)
+(= (ln $x) 
+    (if (< $x 2)
+        (chain (/ (- $x 1) (+ $x 1)) $const
+            (ln-helper $x $const 0 0))
+        (chain (/ $x 1.9999) $rem
+            (chain (ln 1.9999) $base (+ $base (ln $rem)))))) ;; applying ln ab = ln a + ln b
+
+;; helper function for ln -- do the sum            
+(= (ln-helper $x $const $n $acc)
+    (chain (+ (* 2 $n) 1) $factor                    ;;  (2n + 1)
+        (chain (* (/ (pow-math $const $factor) $factor) 2) $current-term
+            (if (> (abs-math $current-term) 0.0000001)
+                (ln-helper $x $const (+ $n 1) (+ $acc $current-term))
+                $acc)))) 
+ 
