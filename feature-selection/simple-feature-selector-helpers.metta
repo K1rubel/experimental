@@ -24,7 +24,7 @@
 (= (List.at $i $list)
     (unify $list Nil (Error $list "Empty list")
         (unify $list (Cons $el $els) 
-            (if (== $i 0) $el (List.at (- $i 1) $els)))))
+            (if (== $i 0) $el (List.at (- $i 1) $els)) (Error $list IncompatibleListStructure))))
 ;;             
 ;; return tuple of unique values and their count
 ;; this one is assuming the list of values have been returned contains the row information. 
@@ -96,6 +96,25 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 
+(: range (-> Number Number Number Expression))
+(= (range $l $step $u)
+    (if (== $step 0)
+        (Error $step "Step value of 0 not allowed!!")
+        (if (>= $l $u) ;; for mettalong ins => change it for metta to >=
+            ()
+            (let $res (range (+ $l $step) $step $u) ;; there behavioral difference in chain and let usage; range in chain fails to reduce 
+                (cons-atom $l $res)))))
+
+(: shuffle (-> Atom Atom Atom))        
+(= (shuffle $expr $acc)
+    (if (== $expr ())
+        $acc
+        (chain (size-atom $expr) $len
+            (chain (random-int 0 $len) $rnd-index
+                (chain (index-atom $expr $rnd-index) $val
+                (chain (cons-atom $val $acc) $new-acc
+                    (chain (subtraction-atom $expr ($val)) $rem ;; if we are certain that a pattern is never repeated in the original expression
+                        (shuffle $rem $new-acc))))))))        
 (: List.head (-> (List $a) $a))
 (= (List.head $list)
     (unify $list 
