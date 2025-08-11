@@ -1,6 +1,6 @@
 ;; python binding for ceiling functionality
 ;; this dont appear to work while importing to the another file
-;;! (bind! ceil (py-atom math.ceil))
+! (bind! ceil (py-atom math.ceil))
 ;;! (bind! rand (py-atom random.randint))
 ;; integer indices to feature names
 (= (fsToNames $labels $ft-indices)
@@ -16,8 +16,16 @@
 
 (= (ssByRow (mkITable $table $lables) $nSubSample)
 	(chain (List.length $table) $row-count
-		(chain (range 0 1 $row-count) $r-indices $r-indices)))
-		
-		;;(chain (shuffle $r-indices ()) $shuffled-indices $shuffled-indices))))		
-;;(chain (ceil ))))
-! (rand 1 53)
+		(chain (range 0 1 $row-count) $r-indices 
+		(chain (shuffle $r-indices ()) $shuffled-indices
+			(chain (ceil (/ $row-count $nSubSample)) $to-ignore-count 
+					(ssIterator $shuffled-indices $to-ignore-count ()))))))		
+(= (ssIterator $shuffled-indices $rowCount $acc)
+	(if (== $shuffled-indices ())
+		$acc
+		(let* (($sampled-r (takeN $rowCount $shuffled-indices))
+			   ($rem-indices (subtraction-atom $shuffled-indices $sampled-r))
+			   ($new-acc (cons-atom $sampled-r $acc)))
+				
+				(ssIterator $rem-indices $rowCount $new-acc))))
+	
