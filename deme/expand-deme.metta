@@ -112,4 +112,29 @@
             (Cons (mkTree (mkNode A) Nil)
                 (Cons (mkTree (mkNode B) Nil) Nil)))
             Nil))))
-		(List.foldl $result))
+		(List.foldl $result union-atom ()))
+
+;; generalized foldl 
+;; considering potential transfomration of input values before applying a function over them
+(= (id $x) $x)
+(= (exp $x) ($x))
+(= (List.t-foldl Nil $f $t $acc) $acc)		
+(= (List.t-foldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.t-foldl $xs $f $t $new-acc))))		
+
+(= (List.t-foldr Nil $f $t $acc) $acc)		
+(= (List.t-foldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.t-foldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))		
+
+;; Testing List.t-foldl
+! (List.t-foldl Nil union-atom exp ())	;; ()
+! (List.t-foldl (Cons A Nil) union-atom exp ())	;; (A)
+! (List.t-foldl (Cons A (Cons B Nil)) union-atom exp ())	;; (A)
+
+! (List.t-foldr Nil union-atom exp ())						;; ()
+! (List.t-foldr (Cons A Nil) union-atom exp ())				;; (A)
+! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())	;; (A)
+! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())	;; (A)
+! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())	;; (A)
+;; (Cons B Nil) A -- wating for out put of the left side
+;; (B) union () -- (B)
+;; union (A) -- result of Cons B Nil
+
