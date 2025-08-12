@@ -200,3 +200,30 @@
 ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
 				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
 		;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
+
+;; measures of similarity for feature selection
+;; jaccard_index 0 ≤ ji ≤ 1
+(: jaccardIndex (-> Expression Expression Number))
+(= (jaccardIndex $s1 $s2)
+	(let* (($comm (intersection-atom $s1 $s2))
+			($uni (union-atom $s1 $s2)))
+		
+		(/ (size-atom $comm) (size-atom $uni))))
+
+;; Testing jaccardIndex
+! (jaccardIndex (A) (B)) ;; 0	
+! (jaccardIndex (A B) (B)) ;; 0.5
+! (jaccardIndex (A B) (B A)) ;; 1
+
+;; measure of dissimilarity, the jaccard distance -- complementary to the jaccard index
+(= (jaccardDist $s1 $s2)
+	(- 1 (jaccardIndex $s1 $s2))) 
+
+
+;; Testing jaccardDist
+! (jaccardDist (A) (B)) ;; 1	
+! (jaccardDist (A B) (B)) ;; 0.5
+! (jaccardDist (A B) (B A)) ;; 0 -- identical
+
+;; to be done -- the complete prune exemplar implementation including what happens if the result of pruning is an empty exemplar
+;; start from the seed by considering the type of the problem (bool, in this instacne) and AND the obvious seed
