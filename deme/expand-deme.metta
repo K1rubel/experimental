@@ -115,7 +115,7 @@
             (Cons (mkTree (mkNode A) Nil)
                 (Cons (mkTree (mkNode B) Nil) Nil)))
             Nil))))
-		(List.foldl $result union-atom ()))
+		(List.foldl $result union-atom ())) ;; doesn't work 
 
 ;; generalized foldl 
 ;; considering potential transfomration of input values before applying a function over them
@@ -138,3 +138,65 @@
 ! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())				;; (A B)
 ! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())				;; (A B C)
 ! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())				;; (A B C D D)
+
+;; Prune exemplar -- remove literals that are not selected in the feature-selection stage from exemplar
+
+; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
+; (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+;     (if (isMember $node (AND OR NOT))
+;         ;; if it's an operator, collect args from children
+;         (let $rest (removeLiteralsFromList $children $symbol)
+; 			(mkTree (mkNode $node) $rest))
+;         ;; else it's a literal, return it in a singleton list
+;         (if (== $symbol $node)
+; 			Nil
+; 			(mkTree (mkNode $node) Nil))))
+
+; (:  (-> List List))
+; (= (removeLiteralsFromList Nil $symbol) Nil)
+; (= (removeLiteralsFromList (Cons $head $tail) $symbol)
+;     (List.appendList (removeLiteralsFromList $tail $symbol) (Cons (removeLiteral $head $symbol) Nil)))
+
+; ! (removeLiteral (mkTree (mkNode A) Nil) A)	
+; ! (removeLiteral (mkTree (mkNode A) Nil) B)	
+; ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) B)	
+; ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) A)	
+; ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode A) Nil) Nil))) A)	
+
+;; chatGPT5 correction on the above implementation
+(: isOperator (-> Atom Bool))
+(= (isOperator $x)
+   (or (== $x AND) (or (== $x OR) (== $x NOT))))
+
+(: removeLiteral (-> Tree Symbol Tree))
+(= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+    (if (isOperator $node)
+        ;; Operator: rebuild with pruned children
+        (mkTree (mkNode $node) (removeLiteralsFromList $children $symbol))
+        ;; Literal: remove if matches target, else keep
+        (if (== $node $symbol)
+            Nil
+            (mkTree (mkNode $node) Nil))))
+
+(: removeLiteralsFromList (-> List Symbol List))
+(= (removeLiteralsFromList Nil $symbol) Nil)
+(= (removeLiteralsFromList (Cons $head $tail) $symbol)
+    (let $newHead (removeLiteral $head $symbol)
+        (if (== $newHead Nil)
+            ;; skip this child entirely
+            (removeLiteralsFromList $tail $symbol)
+            ;; keep it
+            (Cons $newHead (removeLiteralsFromList $tail $symbol)))))
+!(removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    A) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))
+
+!(removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    B) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+
+! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+		;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
