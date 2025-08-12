@@ -50,3 +50,78 @@
 ! (assertEqual (List.takeNFrom 2 10 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
                (Cons 2 (Cons 3 (Cons 4 Nil))))
 
+;; reverse a list
+
+(= (List.reverse Nil $acc) Nil)
+(= (List.reverse (Cons $x $xs) $acc)
+    (if (== $xs Nil)
+        (List.prepend $x $acc)
+        (let $c (List.prepend $x $acc)
+            (List.reverse $xs $c))))
+
+; (= (List.prepend $x Nil) (Cons $x Nil))
+(= (List.prepend $x $list) (Cons $x $list))
+
+; ! (List.prepend 3 Nil)
+! (List.reverse (Cons 1 (Cons 2 (Cons 3 (Cons 7 Nil)))) Nil)
+
+
+(Cons 1 (Cons 2 (Cons 3 (Cons 7 Nil))))
+
+(: List.append (-> $a (List $b) (List $b)))
+; (: List.append (-> Expression (List Expression) (List Expression)))
+
+(= (List.append $a Nil) (Cons $a Nil))
+(= (List.append $a (Cons $x $xs))
+    (if (== $xs Nil)
+        (Cons $x (Cons $a $xs))
+        (Cons $x (List.append $a $xs))))
+
+! (List.append (1 0) Nil)
+! (List.append (1 0) (Cons (3 4) (Cons (1 3) Nil)))
+; ! (List.append 1 (Cons (3 4) (Cons (1 3) Nil)))
+
+
+;; reimplementing partial sort 
+;; staring with (List Number) type
+;; first helper max function
+; (= (List.max $op $list)
+;     (unify $list Nil
+;         Nil
+;         (unify $list (Cons $x $xs)
+;             (if (== $xs Nil)
+;                 $x
+;                 (unify $xs (Cons $t $u)
+;                     (if ($op $x $t)
+;                         (List.max $op (Cons $x $u))
+;                         (List.max $op $xs))
+;                     ()))
+;                 ())))
+;; How can the above be more optimized
+;; the implementation below appears to be a more optimized vesion of the above
+(= (List.max $op $list)
+    (unify $list Nil
+        Nil
+        (unify $list (Cons $x Nil)
+            $x
+            (unify $list (Cons $x (Cons $xs $xxs))
+                (if ($op $x $xs)
+                    (List.max $op (Cons $x $xxs))
+                    (List.max $op (Cons $xs $xxs)))
+                ()))))
+;; INFO: Uncomment for the use of MeTTaLog.
+(: >= (-> Number Number Bool))
+(= (>= $a $b) (or (== $a $b) (> $a $b)))
+
+; ;; Testing List.max
+; ! (List.max >= Nil)  ;; Nil
+; ! (List.max >= (Cons 1 Nil))  ;; 1
+; ! (List.max >= (Cons 1 (Cons 3 Nil)))  ;; 3
+
+; ! (List.max >= (Cons 1 (Cons 3 (Cons 40 (Cons -10 Nil)))))  ;; 40
+; ! (List.max >= (Cons -10 (Cons -3 (Cons -40 (Cons -10 Nil)))))  ;; 40
+; ! (List.max >= (Cons -10 (Cons -3 (Cons -40 (Cons -10 (Cons 2 (Cons 3 (Cons 4 Nil))))))))  ;; 4
+
+(= (List.pSort $list $n)
+    )
+! (get-type A)    
