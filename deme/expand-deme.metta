@@ -106,6 +106,9 @@
 ! (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))	
 ! (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))))	
 
+;; what would features of an exemplar with no literals be
+! (extractArgs (mkTree (mkNode AND) Nil))			;; Nil
+
 ! (let $result (extractArgs (mkTree (mkNode AND)
     (Cons (mkTree (mkNode A) Nil)
         (Cons (mkTree (mkNode OR)
@@ -118,7 +121,7 @@
 ;; considering potential transfomration of input values before applying a function over them
 (= (id $x) $x)
 (= (exp $x) ($x))
-;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl
+;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
 (= (List.t-foldl Nil $f $t $acc) $acc)		
 (= (List.t-foldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.t-foldl $xs $f $t $new-acc))))		
 
