@@ -118,6 +118,7 @@
 ;; considering potential transfomration of input values before applying a function over them
 (= (id $x) $x)
 (= (exp $x) ($x))
+;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl
 (= (List.t-foldl Nil $f $t $acc) $acc)		
 (= (List.t-foldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.t-foldl $xs $f $t $new-acc))))		
 
@@ -127,14 +128,10 @@
 ;; Testing List.t-foldl
 ! (List.t-foldl Nil union-atom exp ())	;; ()
 ! (List.t-foldl (Cons A Nil) union-atom exp ())	;; (A)
-! (List.t-foldl (Cons A (Cons B Nil)) union-atom exp ())	;; (A)
+! (List.t-foldl (Cons A (Cons B Nil)) union-atom exp ())				;; (A)
 
-! (List.t-foldr Nil union-atom exp ())						;; ()
-! (List.t-foldr (Cons A Nil) union-atom exp ())				;; (A)
-! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())	;; (A)
-! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())	;; (A)
-! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())	;; (A)
-;; (Cons B Nil) A -- wating for out put of the left side
-;; (B) union () -- (B)
-;; union (A) -- result of Cons B Nil
-
+! (List.t-foldr Nil union-atom exp ())									;; ()
+! (List.t-foldr (Cons A Nil) union-atom exp ())							;; (A)
+! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())				;; (A B)
+! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())				;; (A B C)
+! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())				;; (A B C D D)
