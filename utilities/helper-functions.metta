@@ -84,4 +84,9 @@
             (if (> (abs-math $current-term) 0.0000001)
                 (ln-helper $x $const (+ $n 1) (+ $acc $current-term))
                 $acc)))) 
+
+(= (randomChoice $tuple)
+    (chain (size-atom $tuple) $size-atom
+        (chain (random-int 0 $size-atom) $int (index-atom $tuple $int))))
+        
  
