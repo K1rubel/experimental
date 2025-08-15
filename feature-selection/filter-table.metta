@@ -1,4 +1,4 @@
-;; filterTable -- filters table containig only features in $ft-to-remove
+;; filterTable -- filters table by removing features in $ft-to-remove
 
 (= (filterTable $ft-to-remove (mkITable $table $labels))
     (if-decons-expr $ft-to-remove $h $t
