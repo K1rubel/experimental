@@ -10,3 +10,7 @@
             (($e1 $e2 $eu) (map-atom ($set1-count $set2-count $union-count) $count (entropy $count $len 0))))
         
         (- (+ $e1 $e2) $eu)))
+
+;; what is left is to calcualte power set of a set based on diversity interaction value and 
+;; find the average mutual information between every combination of the two power sets
+        
