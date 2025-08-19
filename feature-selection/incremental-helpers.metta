@@ -37,12 +37,18 @@
         (let $carry (union-atom $acc ($h))
             (let $rest (collapse 
                 (let $h-s (superpose $t)
-                    (if (isExpEqual $h-s $h)
+                    (if (isEqual $h-s $h)
                         (Empty)
                         $h-s))) (unyque $rest $carry)))
         $acc))             
 
 ; ! (unyque (1 2 3 1 1 2 3 4 5) ())     
+
+;; check for equality of expressions -- to make up for ordering issues
+(: isEqual (-> $a $b Bool))
+(= (isEqual $a $b)
+    (chain (subtraction-atom $a $b) $a-diff
+        (chain (subtraction-atom $b $a) $b-diff (and (== (size-atom $a) (size-atom $b)) (== $a-diff $b-diff)))))
 
 ;; expression equality 
 (= (isExpEqual $exp1 $exp2)
@@ -55,14 +61,14 @@
 ; ! (isExpEqual (1 2 1) (3 2 1))         
 ; !(=alpha ($e $x) ($f $y))
 ;; testing combinator and unique with isExpEqual
-; ! (let $comb (combinator (0 1 2 3) 3)
-;     (unyque $comb ()))
+! (let $comb (combinator (0 1 2 3) 3)
+    (unyque $comb ()))
 
-! (map-atom (1) $x (map-atom (0) $y (== $x $y)))                ;;  ((False))
-! (map-atom (1 0) $x (map-atom (0 1) $y (== $x $y)))            ;;  ((False True) (True False))
-! (map-atom (0 1) $x (map-atom (1 0) $y (== $x $y)))            ;;  ((False True) (True False))
-! (map-atom (0 1 2) $x (map-atom (1 0 2) $y (== $x $y)))        ;;  ((False True False) (True False False) (False False True))
-! (map-atom (0 2 1) $x (map-atom (1 0 2) $y (== $x $y)))        ;;  ((False True False) (False False True) (True False False))
-! (map-atom (0 2 1) $x (map-atom (1 0 3) $y (== $x $y)))        ;;  ((False True False) (False False False) (True False False))
+; ! (map-atom (1) $x (map-atom (0) $y (== $x $y)))                ;;  ((False))
+; ! (map-atom (1 0) $x (map-atom (0 1) $y (== $x $y)))            ;;  ((False True) (True False))
+; ! (map-atom (0 1) $x (map-atom (1 0) $y (== $x $y)))            ;;  ((False True) (True False))
+; ! (map-atom (0 1 2) $x (map-atom (1 0 2) $y (== $x $y)))        ;;  ((False True False) (True False False) (False False True))
+; ! (map-atom (0 2 1) $x (map-atom (1 0 2) $y (== $x $y)))        ;;  ((False True False) (False False True) (True False False))
+; ! (map-atom (0 2 1) $x (map-atom (1 0 3) $y (== $x $y)))        ;;  ((False True False) (False False False) (True False False))
 
 ;; the next issue how to fold these tuple in an element by element basis
