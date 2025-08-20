@@ -14,7 +14,7 @@
 ;;            
 ;;     $csc-ft-set -- composite scored feature set  
 ;; XXX -- asumption is that the input feature sets are sorted according to the raw score 
-;;      $sim-scorer -- either jacaard or mi
+;;      $sim-scorer -- either jaccard or mi
 (= (rankFtSet $div-pres $multi-diversity $sim-scorer $ft-set $ft-set $acc)
     ;; convert each feature set into composite scoreed set -- 
     (let $csc-ft-set 
@@ -32,10 +32,9 @@
                     ($current-ft (second $current-ft-set))
                     ($last-cscore (first $last-ft-set))
                     ($last-ft (second $last-ft-set))
-                    ($sim (if (== $sim-scorer ja)
+                    ($sim (if (== $sim-scorer ja)               ;; assumes either of two similarity scorers jaccard or mi
                                 (jaccardIndex $last-ft $current-ft)
-                                (...)            ;; calculation of feature set similarity uisng mutual infomration
-                            )) 
+                                (mi $current-ft $last-ft $div-interaction (mkITable $table $labels))))            ;; calculation of feature set similarity uisng mutual infomration between sets                             
                     ($last-dp (simToPen $sim $div-pres))      ;; the latest diversity penality
                     ($current-unipen-score (getUniPen $current-cscore))
                     ($agg-dp (max-atom ($last-dp $current-unipen-score)))
@@ -62,3 +61,30 @@
 ; ! (rankFtSet ((0.3 (1 2 3)) (0.4 (3 1))) ())     
 
 ; ! (setUniPen (mkCscore 1 2 4 5 6) 423)
+
+;; biased randbool
+;;          $b -- float [0, 1]
+;; random-float doesnt work in mettalog --- using python binding instead
+! (bind! randomFloat (py-atom random.random))
+(= (biasedRandBool $b)
+    (let $rnd (randomFloat) (> $b $rnd)))
+
+;; sample_enforced_features -- hence the name
+;; takes tuple of pairs containing feaures and probability values of being included in deme creation 
+;; sth like this ((A 0.4) (B 0.3) (C 0.73) ...)
+
+(= (sampleEnforcedFts $enforced-fts $labels)
+    ;; for reason I dont know -- map-atom seem to have issue with (Empty)
+    ; (map-atom $enforced-fts $enforced-ft 
+    ;         (chain (second $enforced-ft) $p (chain (biasedRandBool $p) $biased-bool (if $biased-bool (first $enforced-ft) (empty)))))
+        (collapse (let $enforced-ft (superpose $enforced-fts)
+                    (let $p (second $enforced-ft) (if (biasedRandBool $p) (let $ft (first $enforced-ft) (List.index $ft $labels)) (Empty))))))
+
+(= (List.index $item $list)
+    (unify $list Nil (Error $list EmptyList)
+        (unify $list (Cons $x $xs)
+            (if-equal $item $x
+                0
+                (+ 1 (List.index $item $xs))))))                    
+! (List.index C (Cons A (Cons B (Cons C Nil))))
+! (sampleEnforcedFts ((A 0.4) (B 0.5) (C 0.73)) (Cons A (Cons B (Cons C Nil))))            
