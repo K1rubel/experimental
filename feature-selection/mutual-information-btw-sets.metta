@@ -3,13 +3,13 @@
     (if (< $div-interaction 0)
             (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
             (let* (($sss (+ $div-interaction 1))
-                    (($ps1 $ps2) (map-atom ($set1 $set2) $set (powerset $set $sss True)))
-                    (($ps1-size $ps2-size) ((size-atom $ps1) (size-atom $ps2)))
-                    ($all-comb-mi (map-atom $ps1 $ps-a (map-atom $ps2 $ps-b (mutualInformationBtwSets $ps-a $ps-b (mkITable $table $labels)))))        ;; XXX -- i think the labels are not needed in the calculation
-                    ($inner-sum (map-atom $all-comb-mi $mi (foldl-atom $mi 0 $acc $x (+ $acc $x))))
-                    ($total-mi (foldl-atom $inner-sum 0 $acc $x (+ $acc $x))))
+                    (($ps1 $ps2) (map-atom ($set1 $set2) $set (powerset $set $sss True)))           ;; powersets of the two feature sets
+                    (($ps1-size $ps2-size) ((size-atom $ps1) (size-atom $ps2)))                     ;; size of the power sets
+                    ($all-comb-mi (map-atom $ps1 $ps-a (map-atom $ps2 $ps-b (mutualInformationBtwSets $ps-a $ps-b (mkITable $table $labels)))))        ;; calculation of mutual information between all features sets in the powersets -- all combinations XXX -- i think the labels are not needed in the calculation
+                    ($inner-sum (map-atom $all-comb-mi $mi (foldl-atom $mi 0 $acc $x (+ $acc $x))))         ;; folding the resulting tuple of tuples of MI values into one tuple
+                    ($total-mi (foldl-atom $inner-sum 0 $acc $x (+ $acc $x))))                              ;; final fold to get the sum MI
                     
-                    (/ $total-mi (* $ps1-size $ps2-size))))) ;; the final answer is a 
+                    (/ $total-mi (* $ps1-size $ps2-size))))) ;; the final answer is an average value of the total MI 
 
 (= (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
     (let* (($union (union-atom $set1 $set2))
