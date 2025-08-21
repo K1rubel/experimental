@@ -78,7 +78,7 @@
 ; (= (isOperator $x)
 ;     (or (== $x AND) (or (== $x OR) (== $x NOT))))
 
-(: extractArgs (-> Tree List))
+(: extractArgs (-> (Tree $a) (List Symbol)))
 (= (extractArgs (mkTree (mkNode $node) $children))
     (if (isMember $node (AND OR NOT))
         ;; if it's an operator, collect args from children
@@ -86,7 +86,7 @@
         ;; else it's a literal, return it in a singleton list
         (Cons $node Nil)))
 
-(: extractArgsFromList (-> List List))
+(: extractArgsFromList (-> (List (Tree $a)) (List Symbol)))
 (= (extractArgsFromList Nil) Nil)
 (= (extractArgsFromList (Cons $head $tail))
     (List.appendList (extractArgsFromList $tail) (extractArgs $head)))
@@ -98,6 +98,18 @@
         (Cons $x $a)
         (Cons $x (List.appendList $a $xs))))
 
+(= (exemplarFtsIndices $exemplar $lables)
+    (let* (($labels (extractArgs $exemplar))
+            ($arg-set (List.t-foldl $labels union-atom exp ())))  
+            
+            (map-atom $arg-set $arg (List.index $arg $labels))))        
+
+(= (List.index $item $list)
+    (unify $list Nil (Error $list EmptyList)
+        (unify $list (Cons $x $xs)
+            (if-equal $item $x
+                0
+                (+ 1 (List.index $item $xs))))))            
 ; ! (getArguments (mkTree (mkNode A) Nil))	
 ; ! (getArguments (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))	
 ; ! (getArguments (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))))	
@@ -107,15 +119,15 @@
 ! (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))))	
 
 ;; what would features of an exemplar with no literals be
-! (extractArgs (mkTree (mkNode AND) Nil))			;; Nil
+; ! (extractArgs (mkTree (mkNode AND) Nil))			;; Nil
 
-! (let $result (extractArgs (mkTree (mkNode AND)
-    (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkTree (mkNode OR)
-            (Cons (mkTree (mkNode A) Nil)
-                (Cons (mkTree (mkNode B) Nil) Nil)))
-            Nil))))
-		(List.foldl $result union-atom ())) ;; doesn't work 
+; ! (let $result (extractArgs (mkTree (mkNode AND)
+;     (Cons (mkTree (mkNode A) Nil)
+;         (Cons (mkTree (mkNode OR)
+;             (Cons (mkTree (mkNode A) Nil)
+;                 (Cons (mkTree (mkNode B) Nil) Nil)))
+;             Nil))))
+; 		(List.foldl $result union-atom ())) ;; doesn't work 
 
 ;; generalized foldl 
 ;; considering potential transfomration of input values before applying a function over them
@@ -123,21 +135,21 @@
 (= (exp $x) ($x))
 ;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
 (= (List.t-foldl Nil $f $t $acc) $acc)		
-(= (List.t-foldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.t-foldl $xs $f $t $new-acc))))		
+(= (List.t-foldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $acc $tr) (List.t-foldl $xs $f $t $new-acc))))		
 
 (= (List.t-foldr Nil $f $t $acc) $acc)		
 (= (List.t-foldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.t-foldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))		
 
 ;; Testing List.t-foldl
-! (List.t-foldl Nil union-atom exp ())	;; ()
-! (List.t-foldl (Cons A Nil) union-atom exp ())	;; (A)
-! (List.t-foldl (Cons A (Cons B Nil)) union-atom exp ())				;; (A)
+; ! (List.t-foldl Nil union-atom exp ())	;; ()
+; ! (List.t-foldl (Cons A Nil) union-atom exp ())	;; (A)
+; ! (List.t-foldl (Cons A (Cons B Nil)) union-atom exp ())				;; (A)
 
-! (List.t-foldr Nil union-atom exp ())									;; ()
-! (List.t-foldr (Cons A Nil) union-atom exp ())							;; (A)
-! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())				;; (A B)
-! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())				;; (A B C)
-! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())				;; (A B C D D)
+; ! (List.t-foldr Nil union-atom exp ())									;; ()
+; ! (List.t-foldr (Cons A Nil) union-atom exp ())							;; (A)
+; ! (List.t-foldr (Cons A (Cons B Nil)) union-atom exp ())				;; (A B)
+; ! (List.t-foldr (Cons A (Cons B (Cons C Nil))) union-atom exp ())				;; (A B C)
+; ! (List.t-foldr (Cons A (Cons B (Cons C (Cons D (Cons D Nil))))) union-atom exp ())				;; (A B C D D)
 
 ;; Prune exemplar -- remove literals that are not selected in the feature-selection stage from exemplar
 
@@ -187,19 +199,19 @@
             (removeLiteralsFromList $tail $symbol)
             ;; keep it
             (Cons $newHead (removeLiteralsFromList $tail $symbol)))))
-!(removeLiteral
-    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
-    A) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))
+; !(removeLiteral
+;     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+;     A) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))
 
-!(removeLiteral
-    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
-    B) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+; !(removeLiteral
+;     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+;     B) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
 
-! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
-				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
-		;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
+; ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+; 				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+; 		;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
 
 ;; measures of similarity for feature selection
 ;; jaccard_index 0 ≤ ji ≤ 1
@@ -211,9 +223,9 @@
 		(/ (size-atom $comm) (size-atom $uni))))
 
 ;; Testing jaccardIndex
-! (jaccardIndex (A) (B)) ;; 0	
-! (jaccardIndex (A B) (B)) ;; 0.5
-! (jaccardIndex (A B) (B A)) ;; 1
+; ! (jaccardIndex (A) (B)) ;; 0	
+; ! (jaccardIndex (A B) (B)) ;; 0.5
+; ! (jaccardIndex (A B) (B A)) ;; 1
 
 ;; measure of dissimilarity, the jaccard distance -- complementary to the jaccard index
 (= (jaccardDist $s1 $s2)
@@ -221,9 +233,35 @@
 
 
 ;; Testing jaccardDist
-! (jaccardDist (A) (B)) ;; 1	
-! (jaccardDist (A B) (B)) ;; 0.5
-! (jaccardDist (A B) (B A)) ;; 0 -- identical
+; ! (jaccardDist (A) (B)) ;; 1	
+; ! (jaccardDist (A B) (B)) ;; 0.5
+; ! (jaccardDist (A B) (B A)) ;; 0 -- identical
+
+
+;; ranking feature sets 
+;; features sets with the highest composite score are preferred
+;; the question begs, how is composite score calculated for feature sets?????
 
 ;; to be done -- the complete prune exemplar implementation including what happens if the result of pruning is an empty exemplar
 ;; start from the seed by considering the type of the problem (bool, in this instacne) and AND the obvious seed
+
+;; checking exemplarFtsIndices
+
+! (exemplarFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons D Nil)))))	;; (0 1 2)
+! (exemplarFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons D Nil)))))	;; (0 2)
+
+
+;; input labels from the table
+(= (getInputLabels $labels)
+    (let $res (inputLables $labels) (List.foldl cons-atom () $res)))
+(= (inputLables $labels)
+    (unify $labels Nil (Error $labels NoLabelsSpecified)
+        (unify $labels (Cons $a $as)
+            (if (== $as Nil)
+                Nil
+                (Cons $a (inputLables $as))))))
+
+! (inputLables (Cons A Nil))    ;; Nil -- means this is the last label and the output feature    
+! (inputLables (Cons A (Cons B Nil)))   ;; (Cons A Nil)
+! (getInputLabels (Cons A (Cons B Nil))) ;; (A)
+! (getInputLabels (Cons A (Cons B (Cons C Nil)))) ;; (A)
