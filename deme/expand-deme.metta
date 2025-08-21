@@ -180,7 +180,9 @@
 (= (isOperator $x)
    (or (== $x AND) (or (== $x OR) (== $x NOT))))
 
-(: removeLiteral (-> Tree Symbol Tree))
+(= (pruneExemplar $exemplar $arg-set)
+    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+(: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
     (if (isOperator $node)
         ;; Operator: rebuild with pruned children
@@ -265,3 +267,8 @@
 ! (inputLables (Cons A (Cons B Nil)))   ;; (Cons A Nil)
 ! (getInputLabels (Cons A (Cons B Nil))) ;; (A)
 ! (getInputLabels (Cons A (Cons B (Cons C Nil)))) ;; (A)
+
+! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) A)
+! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) A)
+! (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) (A))
+! (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (A B))
