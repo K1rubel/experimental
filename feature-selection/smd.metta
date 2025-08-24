@@ -148,11 +148,11 @@
     (unify $rows Nil Nil
        (unify $rows (Cons $row $rest)
             (Cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
-
-(= (List.at $i $list)
-    (unify $list Nil (Error $list "Empty list")
-        (unify $list (Cons $el $els) 
-            (if (== $i 0) $el (List.at (- $i 1) $els)))))
+ 
+;;(= (List.at $i $list)
+;;    (unify $list Nil (Error $list "Empty list")
+;;        (unify $list (Cons $el $els) 
+;;          (if (== $i 0) $el (List.at (- $i 1) $els)))))
 
 (= (List.uniqueValuesCount $list $acc)
     (unify $list Nil $acc
@@ -360,4 +360,4 @@
 ; ! (inputPairMiCalculator dataRows (Cons True (Cons True (Cons False (Cons False Nil)))) (0 1 2 3) (((0) 1) ((1) 0) ((2) 0) ((3) 0)))
 
 ; ! (stochasticMaxDependency 0 3 3 ttable mi ())
-! (stochasticMaxDependency 0 1 3 ttable mi ())
+;! (stochasticMaxDependency 0 1 3 ttable mi ())

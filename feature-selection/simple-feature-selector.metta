@@ -173,5 +173,5 @@
 
 
 ; ! (simpleFeatureSelector 4 ttable 0 True ()) ;; ((1.0 A) (0.0 B) (0.0 C) (0.0 D))
-! (simpleFeatureSelector 2 ttable 0 False ()) ;; ((1.0 A) (0.0 B) (0.0 C) (0.0 D))
+;! (simpleFeatureSelector 2 ttable 0 False ()) ;; ((1.0 A) (0.0 B) (0.0 C) (0.0 D))
 

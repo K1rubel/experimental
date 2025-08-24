@@ -1,4 +1,4 @@
-;; the main mutual information between feature set computing agent -- depending on the 
+;; mutual information between feature sets -- makes use of the diversity interaction parameter, which dictates the amount of set to set interaction required to calculate similarity of sets using average mutual inforamtion
 (= (mi $set1 $set2 $div-interaction (mkITable $table $lables))
     (if (< $div-interaction 0)
             (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
@@ -44,3 +44,16 @@
                         (union-atom $filteredNew $ps)
                         $filteredNew)))
              $res )))
+
+;; set -- changes tuples into set             
+(: set (-> Expression Expression Expression))
+(= (set $expr $acc)
+    (if-decons-expr $expr $h $t
+        (let $carry (union-atom $acc ($h))
+            (let $rest (collapse 
+                (let $h-s (superpose $t)
+                    (if (isEqual $h-s $h)
+                        (Empty)
+                        $h-s))) 
+                (set $rest $carry)))
+        $acc))             

@@ -61,8 +61,8 @@
 ; ! (isExpEqual (1 2 1) (3 2 1))         
 ; !(=alpha ($e $x) ($f $y))
 ;; testing combinator and unique with isExpEqual
-! (let $comb (combinator (0 1 2 3) 3)
-    (unyque $comb ()))
+; ! (let $comb (combinator (0 1 2 ) 3)
+;     (unyque $comb ()))
 
 ; ! (map-atom (1) $x (map-atom (0) $y (== $x $y)))                ;;  ((False))
 ; ! (map-atom (1 0) $x (map-atom (0 1) $y (== $x $y)))            ;;  ((False True) (True False))
