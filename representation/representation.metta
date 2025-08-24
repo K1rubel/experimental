@@ -2,15 +2,15 @@
 ;; Params: Tree (Exemplar)
 ;;         $argLabels: list of argument labels     (input variables) from the ITable
 ;; Returns: Representation
-; (: representation (-> (Tree $a) Expression Representation))
-; (= (representation $exemplar $argLabels)
-; (let*
-; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
-;  )
-;  (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-;  ))
+(: representation (-> (Tree $a) Expression Representation))
+(= (representation $exemplar $argLabels)
+(let*
+(
+    (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
+    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+ )
+ (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
+ ))
 (: representation (-> (Tree $a) (ITable $a) Symbol bool Expression Expression))
 (= (representation 
             $exemplar                   ;; tree around which multiple representations are to be built
@@ -20,7 +20,7 @@
             $enforced-fts               ;; set of features to be enforced in to selected features
         )
         
-        (let*   (($exemplar-fts (exemplarFtsIndices $exemplar $labels))       ;; exemplarFtsIndices function in deme/expand-deme.metta
+        (let*   (($exemplar-fts (treeFtsIndices $exemplar $labels))       ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
                  ($selected-fts-pop (featureSelection $ft-selection-algo))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
                  ($selected-ft-sets (map-atom $selected-fts-pop $selected-ft-set (second $selected-ft-set)))         ;; just set of selected features without their scores
