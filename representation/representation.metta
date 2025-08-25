@@ -47,46 +47,36 @@
         
         (let*   (($exemplar-fts (treeFtsIndices $exemplar $labels))           ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
-                 ($selected-fts-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja 2)))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
-               ;   ($selected-ft-sets (map-atom $selected-fts-pop $selected-ft-set (second $selected-ft-set)))         ;; just set of selected features without their scores
-               ;   ($diff-fts (map-atom $selected-fts-pop $selected-ft-set (subtraction-atom $exemplar-fts $selected-ft-set))) ) $diff-fts))    ;; set of features in exemplar but not selected during feature selection for pruning
-               ;  ;  ($exemplar-seq (if $prune-exemplar
-               ;  ;                     (map-atom $diff-fts $diff-ft (pruneExemplar $exemplar $diff-ft))                             ;; set of exemplars which have been pruned
-               ;  ;                     (map-atom $selected-ft-sets $selected-ft-set (union-atom $exemplar-fts $selected-ft-set))))  ;; include exemplar features in the selected feature set
-               ;  )
-               
-                (if $prune-exemplar
-                    (let* (($diff-fts (map-atom $selected-fts-pop $selected-ft-set (subtraction-atom $exemplar-fts $selected-ft-set)))                 ;; selected features without exemplar features
-                            ($exemplar-seq (map-atom $diff-fts $diff-ft (let $ft-names (fsToNames $labels $diff-ft) (pruneExemplar $exemplar $ft-names)))) 
-                            ($used-ft-sets (map-atom $selected-fts-pop $selected-ft-set (subtraction-atom $selected-ft-set $exemplar-fts))) 
-                            ($arg-sets (if (== $enforced-fts ())
-                                             (map-atom $used-ft-sets $used-ft-set (fsToNames $labels $used-ft-set)) ;; .. ))) $arg-sets) ..)))
-                                             (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts $labels) $sampled-enforced-fts) .. ))) $arg-sets) ..)))           ;; from feature-selection/select-top-features.metta)
-                                                (map-atom $used-ft-sets $used-ft-set 
-                                                        (let $args (fsToNames $used-ft-set $labels) (union-atom $sampled-enforced-fts $args)))))
-                            ($exemplar-arg-seq (one2one $exemplar-seq $arg-sets)))
-                        
-                            (collapse 
-                                (let* ((($xmplr $argLabels) (superpose $exemplar-arg-seq))
-                                        (($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))
-                                        ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))
+                 ($ft-set-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja 2))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
+                     (if $prune-exemplar
+                           (map-atom $ft-set-pop $ft-set 
+                              (let* (($diff-ft (subtraction-atom $exemplar-fts $ft-set))
+                                     ($ft-names (fsToNames $labels $diff-ft))
+                                     ($pruned-xmplr (pruneExemplar $exemplar $ft-names))
+                                     ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
 
-                                        (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
+                                 ($pruned-xmplr (fsToNames $labels $final-args))))
+                           
+                           (map-atom $ft-set-pop $ft-set 
+                                 (let* (($agg (union-atom $ft-set $exemplar-fts))
+                                        ($final-args (fsToNames $labels $agg)))  
+                                        
+                                    ($exemplar $final-args))))) 
+                  ($with-enforced-fts                                         ;; enforce features
+                     (if (== $enforced-fts ())
+                           $exemplar-arg-seq
+                           (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts)           ;; from feature-selection/select-top-features.metta
+                                    (map-atom $exemplar-arg-seq ($xmplr $args)
+                                             (let $acc (union-atom $args $sampled-enforced-fts) ($xmplr $acc))))))  
+                  ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (eval (not (== $args ()))))))      ;; filter out exemplar arg pairs that have empty arg list
 
-                    (let* (($used-ft-sets (map-atom $selected-ft-sets $selected-ft-set (union-atom $selected-ft-set $exemplar-fts)))
-                            ($final-ft-sets (if (== $enforced-fts ())
-                                                (map-atom $used-ft-sets $used-ft-set (fsToNames $used-ft-set $labels))
-                                                (let $sampled-enforced-fts (SampleEnforcedFts $enforced-fts $labels)            ;; from feature-selection/select-top-features.metta
-                                                    (map-atom $used-ft-sets $used-ft-set 
-                                                        (let $args (fsToNames $used-ft-set $labels) (union-atom $sampled-enforced-fts $args))))))
-                            ($exemplar-arg-seq (map-atom $fina-ft-sets $final-ft-set ($exemplar $final-ft-set))))
-                        
-                            (collapse 
-                                (let* ((($xmplr $argLabels) (superpose $exemplar-arg-seq))
-                                        (($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))
-                                        ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))
+                     (map-atom $with-enforced-fts ($xmplr $argLabels) 
+                           (let* ((($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
+                                  ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                 
+                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
-                                        (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))))
 (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
