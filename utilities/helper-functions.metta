@@ -54,12 +54,12 @@
         (sortPairs $op $rest (- $count 1) $new-acc))))))  ;; recursive call
 
 ;; binding inf value in mettalog for pair comparison
-! (bind! -inf (py-atom ("float('-inf')")))
+; ! (bind! -inf (py-atom ("float('-inf')")))
 (= (pairMax ($item1 $val1) ($item2 $val2)) (if (=> $val1 $val2) ($item1 $val1) ($item2 $val2)))
 
-! (pairMax (A 2) (B 3))
+; ! (pairMax (A 2) (B 3))
 ;; Testing the above function
-! (sortPairs pairMax ((A 2) (B 3) (C 2.3) (D 4) (D 7)) 3 ())
+; ! (sortPairs pairMax ((A 2) (B 3) (C 2.3) (D 4) (D 7)) 3 ())
 
 ;; foldl function
 
@@ -90,3 +90,24 @@
         (chain (random-int 0 $size-atom) $int (index-atom $tuple $int))))
         
  
+; a reverse functionality without accumulator 
+; this one is done with metta -- not mettalog -- most, if not all, of the above have been written for mettalog 
+(= (reverse $expr)
+    (if-decons-expr $expr $h $t
+        (let $rest (reverse $t)
+            (union-atom $rest ($h)))
+        ()))
+
+
+; ;; the problem with the above implementation is that -- in mettalog union-atom removes redundant atoms while that is not the pupose of reverse here
+; ;; reimplement uninon-atom
+; ; (= (uninonAtom $x $y)
+; ;     (if-decons-expr $x $h $t
+; ;         (let $next (cons-atom $))
+; ;     $y))
+; (= (reverse $expr)
+;     (if-decons-expr $expr $h $t
+;         (if (== $t ())
+;             (cons-atom $h $t)
+;             ())
+;         ()))
