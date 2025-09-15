@@ -74,3 +74,56 @@
 ;; decrement operator
 (: dec (-> Number Number))            
 (= (dec $n) (- $n 1)) 
+
+;; finding better implementation for the ff to avoid call back loop
+(= (pruneExemplar $exemplar $arg-set)
+    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+    
+; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
+(= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+    (if (isMember $node (AND OR NOT))
+        (mkTree (mkNode $node) (List.mapOverArg removeLiteral $symbol $children))
+        (if (== $node $symbol)
+            Nil
+            (mkTree (mkNode $node) Nil))))
+
+; (: removeLiteralsFromList (-> (List (Tree $a)) Symbol (List (Tree $a))))
+; (= (removeLiteralsFromList Nil $symbol) Nil)
+; (= (removeLiteralsFromList (Cons $head $tail) $symbol)
+;     (let $newHead (removeLiteral $head $symbol)
+;         (if (== $newHead Nil)
+;             (removeLiteralsFromList $tail $symbol)
+;             (Cons $newHead (removeLiteralsFromList $tail $symbol)))))
+
+
+;; Map a function over a list
+(: List.map (-> (-> $a $b) (List $a) (List $b)))
+(= (List.map $f Nil) Nil)
+(= (List.map $f (Cons $x $xs)) (Cons ($f $x) (List.map $f $xs)))
+
+(= (List.mapOverArg $f $arg Nil) Nil)
+(= (List.mapOverArg $f $arg (Cons $head $tail))
+    (let $new-head ($f $head $arg)
+        (if (== $new-head Nil)
+            (List.mapOverArg $f $arg $tail)
+            (Cons $new-head (List.mapOverArg $f $arg $tail)))))
+
+
+(: isMember (-> $a $aa Bool))
+(= (isMember $x $list)
+    (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
+)
+
+!(removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    A)            
+;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))
+!(removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    B)
+;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
